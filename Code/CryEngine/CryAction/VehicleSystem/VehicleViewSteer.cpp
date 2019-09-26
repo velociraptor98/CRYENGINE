@@ -1,4 +1,4 @@
-// Copyright 2001-2016 Crytek GmbH / Crytek Group. All rights reserved.
+// Copyright 2001-2019 Crytek GmbH / Crytek Group. All rights reserved.
 
 /*************************************************************************
    -------------------------------------------------------------------------
@@ -55,8 +55,7 @@ CVehicleViewSteer::CVehicleViewSteer()
 
 //------------------------------------------------------------------------
 CVehicleViewSteer::~CVehicleViewSteer()
-{
-}
+{}
 
 static void getFlag(CVehicleParams& params, const char* key, int& flags, int flag)
 {
@@ -155,9 +154,8 @@ void CVehicleViewSteer::Reset()
 	CVehicleViewBase::Reset();
 
 	IEntity* pEntity = m_pVehicle->GetEntity();
-	assert(pEntity);
+	CRY_ASSERT(pEntity);
 	m_position = pEntity->GetWorldTM() * m_localSpaceCameraOffset;
-	Vec3 entityPos = pEntity->GetPos();
 	CalcLookAt(pEntity->GetWorldTM());
 	m_lastOffset = m_position - m_lookAt;
 	m_lastOffsetBeforeElev = m_lastOffset;
@@ -206,7 +204,7 @@ void CVehicleViewSteer::OnStopUsing()
 void CVehicleViewSteer::Update(float dt)
 {
 	IEntity* pEntity = m_pVehicle->GetEntity();
-	assert(pEntity);
+	CRY_ASSERT(pEntity);
 
 	IVehicleMovement* pVehicleMovement = m_pVehicle->GetMovement();
 	if (pVehicleMovement == NULL)
@@ -224,7 +222,6 @@ void CVehicleViewSteer::Update(float dt)
 	const float pedal = pVehicleMovement->GetEnginePedal();
 	const float maxSpeed = movementState.maxSpeed;
 	const Matrix34& pose = m_pAimPart ? m_pAimPart->GetWorldTM() : pEntity->GetWorldTM();
-	const Vec3 entityPos = pose.GetColumn3();
 	const Vec3 xAxis = pose.GetColumn0();
 	const Vec3 yAxis = pose.GetColumn1();
 	const Vec3 zAxis = pose.GetColumn2();
@@ -400,7 +397,8 @@ void CVehicleViewSteer::Update(float dt)
 			// Calculate camera bounds.
 			AABB localBounds;
 
-			m_pVehicle->GetEntity()->GetLocalBounds(localBounds);
+			//Get the bounding box of the model which is in the first place of the render nodes
+			m_pVehicle->GetEntity()->GetRenderNode()->GetLocalBounds(localBounds);
 
 			const float cameraBoundsScale = 0.75f;
 
@@ -433,8 +431,8 @@ void CVehicleViewSteer::Update(float dt)
 			IPhysicalEntity* pSkipEntities[10];
 
 			float distance = gEnv->pPhysicalWorld->PrimitiveWorldIntersection(sphere.type, &sphere, direction, ent_static | ent_terrain | ent_rigid | ent_sleeping_rigid,
-			                                                                  &pContact, 0, (geom_colltype_player << rwi_colltype_bit) | rwi_stop_at_pierceable, 0, 0, 0,
-			                                                                  pSkipEntities, m_pVehicle->GetSkipEntities(pSkipEntities, 10));
+				&pContact, 0, (geom_colltype_player << rwi_colltype_bit) | rwi_stop_at_pierceable, 0, 0, 0,
+				pSkipEntities, m_pVehicle->GetSkipEntities(pSkipEntities, 10));
 
 			if (distance > 0.0f)
 			{
@@ -449,7 +447,7 @@ void CVehicleViewSteer::Update(float dt)
 	}
 	else
 	{
-		CRY_ASSERT_MESSAGE(0, "camera will fail because lookat position is invalid");
+		CRY_ASSERT(0, "camera will fail because lookat position is invalid");
 	}
 
 	m_rotatingAction.zero();
@@ -468,7 +466,7 @@ void CVehicleViewSteer::UpdateView(SViewParams& viewParams, EntityId playerId)
 	}
 	else
 	{
-		CRY_ASSERT_MESSAGE(0, "camera position invalid");
+		CRY_ASSERT(0, "camera position invalid");
 	}
 
 	Vec3 dir = (m_lookAt - m_position).GetNormalizedSafe();
@@ -478,7 +476,7 @@ void CVehicleViewSteer::UpdateView(SViewParams& viewParams, EntityId playerId)
 	}
 	else
 	{
-		CRY_ASSERT_MESSAGE(0, "camera rotation invalid");
+		CRY_ASSERT(0, "camera rotation invalid");
 	}
 
 	// set view direction on actor
@@ -502,9 +500,7 @@ void CVehicleViewSteer::Serialize(TSerialize serialize, EEntityAspects aspects)
 
 void CVehicleViewSteer::OffsetPosition(const Vec3& delta)
 {
-#ifdef SEG_WORLD
 	m_position += delta;
-#endif
 }
 
 DEFINE_VEHICLEOBJECT(CVehicleViewSteer);

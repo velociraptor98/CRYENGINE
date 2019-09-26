@@ -1,4 +1,4 @@
-// Copyright 2001-2016 Crytek GmbH / Crytek Group. All rights reserved.
+// Copyright 2001-2019 Crytek GmbH / Crytek Group. All rights reserved.
 
 #include "stdafx.h"
 #include "AttachmentBase.h"
@@ -7,7 +7,7 @@
 
 void SAttachmentBase::AddBinding(IAttachmentObject* pModel, ISkin* pISkin /*= 0*/, uint32 nLoadingFlags /*= 0*/)
 {
-	if (nLoadingFlags & CA_CharEditModel)
+	if (nLoadingFlags & CA_CharEditModel || nLoadingFlags & CA_ImmediateMode)
 	{
 		// The reason for introducing these special cases is twofold:
 		// - Certain modification commands (such as CAddAttachmentObject) contain specialized control paths for CA_CharEditModel
@@ -22,24 +22,30 @@ void SAttachmentBase::AddBinding(IAttachmentObject* pModel, ISkin* pISkin /*= 0*
 		return;
 	}
 
-	m_pAttachmentManager->AddAttachmentObject(this, pModel, pISkin, nLoadingFlags);
-	// Immediate_AddBinding(pModel, pISkin, nLoadingFlags);
+	if (m_pAttachmentManager)
+	{
+		m_pAttachmentManager->AddAttachmentObject(this, pModel, pISkin, nLoadingFlags);
+	}
 }
 
 void SAttachmentBase::ClearBinding(uint32 nLoadingFlags /*= 0*/)
 {
-	if (nLoadingFlags & CA_CharEditModel)
+	if (nLoadingFlags & CA_CharEditModel || nLoadingFlags & CA_ImmediateMode)
 	{
 		Immediate_ClearBinding(nLoadingFlags);
 		return;
 	}
 
-	m_pAttachmentManager->ClearAttachmentObject(this, nLoadingFlags);
-	// Immediate_ClearBinding(nLoadingFlags);
+	if (m_pAttachmentManager)
+	{
+		m_pAttachmentManager->ClearAttachmentObject(this, nLoadingFlags);
+	}
 }
 
 void SAttachmentBase::SwapBinding(IAttachment* pNewAttachment)
 {
-	m_pAttachmentManager->SwapAttachmentObject(this, pNewAttachment);
-	// Immediate_SwapBinding(pNewAttachment);
+	if (m_pAttachmentManager)
+	{
+		m_pAttachmentManager->SwapAttachmentObject(this, pNewAttachment);
+	}
 }
